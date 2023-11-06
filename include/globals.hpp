@@ -10,6 +10,14 @@
 #define rft_port 17
 #define rbb_port 18
 #define rbt_port 19
+
+//intake
+#define intake_port 8
+
+//cascade
+#define dpl_port 6
+#define dpr_port 7
+
 //port 20 clip on brain broken
 
 #endif

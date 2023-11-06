@@ -13,6 +13,9 @@ void initialize() {
 	pros::Motor rft_base(rft_port, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
 	pros::Motor rbb_base(rbb_port, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
 	pros::Motor rbt_base(rbt_port, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
+	pros::Motor intake(intake_port, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
+	pros::Motor dpl(dpl_port, pros::E_MOTOR_GEARSET_06, false, pros::E_MOTOR_ENCODER_DEGREES);
+	pros::Motor dpr(dpr_port, pros::E_MOTOR_GEARSET_06, true, pros::E_MOTOR_ENCODER_DEGREES);
 }
 
 void disabled() {}
@@ -35,15 +38,23 @@ void opcontrol() {
 	pros::Motor rft_base(rft_port);
 	pros::Motor rbb_base(rbb_port);
 	pros::Motor rbt_base(rbt_port);
+	bool tankdrive = false; //drive mode control
 
-	//drive mode control
-	bool tankdrive = false;
+	//intake
+	pros::Motor intake(intake_port);
+	int intake_power = 120;
+
+	//cascade
+	pros::Motor dpl(dpl_port);
+	pros::Motor dpr(dpr_port);
 
 	while(true){
 
         //base control
         double left, right;
-        if(master.get_digital_new_press(DIGITAL_Y)) tankdrive = !tankdrive;
+        
+		if(master.get_digital_new_press(DIGITAL_Y)) tankdrive = !tankdrive; //tank toggle
+
         if(tankdrive) {
             left = master.get_analog(ANALOG_LEFT_Y);
             right = master.get_analog(ANALOG_RIGHT_Y);
@@ -64,5 +75,12 @@ void opcontrol() {
         rft_base.move(right);
         rbb_base.move(right);
 		rbt_base.move(right);
+
+		//intake control
+		intake.move(((master.get_digital(DIGITAL_L1)) - master.get_digital(DIGITAL_L2)) * intake_power);
+
+		//cascade driver pulley control
+		dpl.move(((master.get_digital(DIGITAL_R1)) - master.get_digital(DIGITAL_R2)) * intake_power);
+		dpr.move(((master.get_digital(DIGITAL_R1)) - master.get_digital(DIGITAL_R2)) * intake_power);
 	}
 }
